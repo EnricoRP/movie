@@ -14,12 +14,11 @@ const MovieCard = ({ genres, movie: { title, vote_average, poster_path, original
                         <p>{vote_average ? vote_average.toFixed(1) : 'N/A'}</p>
                     </div>
 
-                    <span>•</span>
-                    <p className="lang">{original_language}</p>
-                    <span>•</span>
-                    <p className="year">{release_date ? release_date.split('-')[0] : 'N/A'}</p>
-                    <span>•</span>
-                    <p className='genre'>{genres.find(g => g.id === genre_ids[0]).name || 'Unknown'}</p>
+                    <p className="lang"><span>•</span> {original_language}</p>
+                    <p className="year"><span>•</span> {release_date ? release_date.split('-')[0] : 'N/A'}</p>
+                    {Array.isArray(genres) && genres.length > 0 && Array.isArray(genre_ids) && genre_ids.length > 0 && (
+                        <p className='genre'><span>• </span>{genres.find(g => g.id === genre_ids[0])?.name || 'Unknown'}</p>
+                    )}
                 </div>
             </div>
         </div>
