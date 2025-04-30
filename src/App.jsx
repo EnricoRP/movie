@@ -63,9 +63,11 @@ const App = () => {
       setErrorMessage(`Error fetching genre: ${error.message}`);
     }
   }
-
   useEffect(() => {
     fetchGenre();
+  }, []);
+
+  useEffect(() => {
     fecthMovies(debouncedSearchTerm);
   }, [debouncedSearchTerm]);
 
