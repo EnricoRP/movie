@@ -4,6 +4,7 @@ import Search from './components/Search'
 import { useEffect } from 'react';
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
+import { useDebounce } from 'react-use'; 'react-use';
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -22,6 +23,9 @@ const App = () => {
   const [movieList, setMovieList] = useState([]);
   const [genreList, setGenreList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  useDebounce(()=> setDebouncedSearchTerm(searchTerm),500, [searchTerm]);
 
   const fecthMovies = async (query = '') => {
     try {
@@ -60,25 +64,10 @@ const App = () => {
     }
   }
 
-  // ✅ Fetch genre dan movies di awal
   useEffect(() => {
     fetchGenre();
-    fecthMovies(); // atau fetchMovies(defaultKeyword) kalau kamu ada keyword awal
-  }, []);
-
-  // ⏳ Debounce saat input berubah
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(searchTerm);
-    }, 500);
-
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
-
-  // 🔁 Fetch movie setelah debounce
-  useEffect(() => {
-    fecthMovies(debouncedValue); 
-  }, [debouncedValue]);
+    fecthMovies(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
   return (
     <main>
@@ -91,7 +80,7 @@ const App = () => {
           </h1>
           <Search
             searchTerm={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            setSearchTerm={setSearchTerm}
           />
         </header>
 
