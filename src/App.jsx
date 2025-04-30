@@ -4,8 +4,9 @@ import Search from './components/Search'
 import { useEffect } from 'react';
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
-import { useDebounce } from 'react-use'; import { getTrendingMovie, updateSearchCount } from './appwrite';
+import { useDebounce } from 'react-use'; import { getTrendingMovie, updateSearchCount } from './utils/appwrite';
 import TrendingMovieCard from './components/TrendingMovieCard';
+import { fecthMovies } from './utils/movie';
 'react-use';
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
@@ -29,30 +30,6 @@ const App = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
-
-  const fecthMovies = async (query = '') => {
-    try {
-      setIsLoading(true)
-      const endpoint = query ? `${API_BASE_URL}/search/movie?include_adult=false&language=en-US&query=${encodeURIComponent(query)}` :
-        `${API_BASE_URL}/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc`;
-      const response = await fetch(endpoint, API_OPTIONS);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setMovieList(data.results);
-
-      if (query && data.results.length > 0) {
-        await updateSearchCount(query, data.results[0]);
-      }
-
-      setIsLoading(false)
-    } catch (error) {
-      setIsLoading(false)
-      console.error(`Error fetching movies: ${error.message}`);
-      setErrorMessage(`Error fetching movies: ${error.message}`);
-    }
-  }
 
   const fetchGenre = async () => {
     try {
@@ -86,7 +63,12 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    fecthMovies(debouncedSearchTerm);
+    fecthMovies({
+      query: { debouncedSearchTerm },
+      setErrorMessage,
+      setIsLoading,
+      setMovieList
+    });
   }, [debouncedSearchTerm]);
 
   return (
