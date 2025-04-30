@@ -17,17 +17,18 @@ const API_OPTIONS = {
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedValue, setDebouncedValue] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [movieList, setMovieList] = useState([]);
   const [genreList, setGenreList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fecthMovies = async () => {
+  const fecthMovies = async (query = '') => {
     try {
       setIsLoading(true)
-      const endpont = `${API_BASE_URL}/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc`;
-      const response = await fetch(endpont, API_OPTIONS);
-
+      const endpoint = query ? `${API_BASE_URL}/search/movie?include_adult=false&language=en-US&query=${encodeURIComponent(query)}` :
+        `${API_BASE_URL}/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc`;
+      const response = await fetch(endpoint, API_OPTIONS);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -46,12 +47,12 @@ const App = () => {
     try {
       setIsLoading(true);
       const endpoint = `${API_BASE_URL}/genre/movie/list`;
-      const response =  await fetch(endpoint, API_OPTIONS);
-      if(!response.ok) { 
+      const response = await fetch(endpoint, API_OPTIONS);
+      if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setGenreList(data.genres); 
+      setGenreList(data.genres);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -59,10 +60,25 @@ const App = () => {
     }
   }
 
+  // ✅ Fetch genre dan movies di awal
   useEffect(() => {
-    fecthMovies();
     fetchGenre();
+    fecthMovies(); // atau fetchMovies(defaultKeyword) kalau kamu ada keyword awal
   }, []);
+
+  // ⏳ Debounce saat input berubah
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // 🔁 Fetch movie setelah debounce
+  useEffect(() => {
+    fecthMovies(debouncedValue); 
+  }, [debouncedValue]);
 
   return (
     <main>
@@ -73,12 +89,14 @@ const App = () => {
           <h1>
             Find <span className="text-gradient">Movies</span> You'll Enjoy Without the Hassle
           </h1>
-          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          <Search
+            searchTerm={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </header>
 
         <section className="all-movies">
           <h2>All Movies</h2>
-          <div>
             {isLoading ? (
               <Spinner />
             ) : errorMessage ? (<p className='text-red-500'>{errorMessage}</p>) : (
@@ -90,7 +108,6 @@ const App = () => {
                 )}
               </ul>
             )}
-          </div>
         </section>
       </div>
     </main>
