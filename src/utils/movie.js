@@ -51,3 +51,20 @@ export const fetchGenre = async ({ setGenreList, setIsLoading, setErrorMessage }
         setErrorMessage(`Error fetching genre: ${error.message}`);
     }
 }
+
+export const getMovieDetail = async ({ movieId }) => {
+    try {
+        setIsLoading(true);
+        const endpoint = `${API_BASE_URL}/movie/${movieId}`;
+        const response = await fetch(endpoint, API_OPTIONS);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setGenreList(data.genres);
+        setIsLoading(false);
+    } catch (error) {
+        setIsLoading(false);
+        setErrorMessage(`Error fetching genre: ${error.message}`);
+    }
+}
