@@ -10,7 +10,7 @@ const API_OPTIONS = {
     }
 };
 
-export const fecthMovies = async ({query = '', setIsLoading, setMovieList, setErrorMessage}) => {
+export const fecthMovies = async ({ query = '', setIsLoading, setMovieList, setErrorMessage, updateSearchCount }) => {
     try {
         setIsLoading(true)
         const endpoint = query ? `${API_BASE_URL}/search/movie?include_adult=false&language=en-US&query=${encodeURIComponent(query)}` :
@@ -19,11 +19,12 @@ export const fecthMovies = async ({query = '', setIsLoading, setMovieList, setEr
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         const data = await response.json();
         setMovieList(data.results);
 
         if (query && data.results.length > 0) {
-            // await updateSearchCount(query, data.results[0]);
+            await updateSearchCount(query, data.results[0]);
         }
 
         setIsLoading(false)
@@ -31,5 +32,22 @@ export const fecthMovies = async ({query = '', setIsLoading, setMovieList, setEr
         setIsLoading(false)
         console.error(`Error fetching movies: ${error.message}`);
         setErrorMessage(`Error fetching movies: ${error.message}`);
+    }
+}
+
+export const fetchGenre = async ({ setGenreList, setIsLoading, setErrorMessage }) => {
+    try {
+        setIsLoading(true);
+        const endpoint = `${API_BASE_URL}/genre/movie/list`;
+        const response = await fetch(endpoint, API_OPTIONS);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setGenreList(data.genres);
+        setIsLoading(false);
+    } catch (error) {
+        setIsLoading(false);
+        setErrorMessage(`Error fetching genre: ${error.message}`);
     }
 }
